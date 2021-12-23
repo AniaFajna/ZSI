@@ -7,9 +7,11 @@ import java.util.TimerTask;
 
 public class PlanePanel extends JPanel implements ActionListener {
 
-	private JButton start;
-	private int planeX = 0;
-	private int planeY = 250;
+	private JPanel x;
+	private JButton start, reset;
+	private JSpinner js;
+	private int planeX;
+	private int planeY;
 	private double[] floorY;
 	private int[] floorX;
 	private FuzzyLogic fz;
@@ -17,10 +19,16 @@ public class PlanePanel extends JPanel implements ActionListener {
 	ArrayList<Integer> drawLineX, drawLineY;
 	Graphics2D g2d;
 	MouseListener ml;
+	int deltaH;
 
 	PlanePanel() {
 		initComponents();
-		this.add(start);
+		SpinnerModel model = new SpinnerNumberModel(50, // initial value
+				20,  // min
+				300, // max
+				1);  // step
+		js.setModel(model);
+		this.add(x, BorderLayout.NORTH);
 		ml = new MouseAdapter() {
 			public void mousePressed(MouseEvent e) {
 				drawLineX.add(e.getX());
@@ -29,22 +37,30 @@ public class PlanePanel extends JPanel implements ActionListener {
 			}
 		};
 		this.addMouseListener(ml);
-		fz = new FuzzyLogic(floorX, floorY, planeX, planeY);
 	}
 
 	private void initComponents() {
+		x = new JPanel();
+		x.setLayout(new GridLayout(1,1, 15, 15));
 		start = new JButton("Start");
 		start.addActionListener(this);
+		start.setEnabled(false);
+		reset = new JButton("Reset");
+		reset.addActionListener(this);
+		js = new JSpinner();
+		planeX = 0;
+		planeY = 250;
+		x.add(start);
+		x.add(reset);
+		x.add(new JLabel("Δh :", SwingConstants.RIGHT));
+		x.add(js);
 
 		drawLineX = new ArrayList<>();
 		drawLineY = new ArrayList<>();
 		drawLineX.add(0);
 		drawLineY.add(300);
 		t = new Timer();
-	}
-
-	private void drawPoint(Graphics2D g2d, int x, int y) {
-		g2d.drawRect(x, y,5,5);
+		fz = new FuzzyLogic(floorX, floorY, planeX, planeY);
 	}
 
 	private void drawLines(Graphics2D g2d) {
@@ -88,6 +104,7 @@ public class PlanePanel extends JPanel implements ActionListener {
 	}
 
 	private void movement() {
+		start.setEnabled(true);
 		planeX = fz.getPlaneX();
 		planeY = fz.getPlaneY();
 		revalidate();
@@ -105,6 +122,7 @@ public class PlanePanel extends JPanel implements ActionListener {
 		g2d.drawRect(planeX, planeY,10,10);
 	}
 
+
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		if (e.getSource().equals(start)) {
@@ -112,16 +130,44 @@ public class PlanePanel extends JPanel implements ActionListener {
 			fillFloorYParameters();
 			fillFloorXParameters();
 			fz = new FuzzyLogic(floorX, floorY, planeX, planeY);
+			deltaH = (int) js.getValue();
 			t.schedule(new TimerTask() {
 				@Override
 				public void run() {
-					fz.active();
+					reset.setEnabled(false);
+					fz.active(deltaH);
 					movement();
 					if (planeX/10 == floorX.length-1) {
 						t.cancel();
+						reset.setEnabled(true);
 					}
 				}
 			}, 0, 1);
+		} else if (e.getSource().equals(reset)) {
+			removeAll();
+			int index = (int) js.getValue();
+			initComponents();
+			SpinnerModel model = new SpinnerNumberModel(index, // initial value
+					20,  // min
+					300, // max
+					1);  // step
+			js.setModel(model);
+			this.add(x, BorderLayout.NORTH);
+			planeX = 0;
+			planeY = 300 - (int) js.getValue();
+			floorY = null;
+			floorX = null;
+			ml = new MouseAdapter() {
+				public void mousePressed(MouseEvent e) {
+					drawLineX.add(e.getX());
+					drawLineY.add(e.getY());
+					movement();
+				}
+			};
+			this.addMouseListener(ml);
+			fz = new FuzzyLogic(floorX, floorY, planeX, planeY);
+			this.repaint();
+			this.validate();
 		}
 	}
 }

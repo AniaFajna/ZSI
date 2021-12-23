@@ -6,7 +6,6 @@ public class FuzzyLogic {
 	double[][] T = new double[6][201];
 	int[] floorX;
 	double[] floorY;
-	int floorYY;
 
 	FuzzyLogic(int[] floorX, double[] floorY, int planeX, int planeY) {
 		fillAlfaTable();
@@ -17,9 +16,9 @@ public class FuzzyLogic {
 		this.planeY = planeY;
 	}
 
-	public void active() {
+	public void active(int deltaH) {
 		roznicaWysokosci = (int) floorY[planeX/10] - planeY; // Math.ceil()
-		double r = Math.sqrt(2500 + Math.pow(roznicaWysokosci, 2));
+		double r = Math.sqrt(Math.pow(deltaH, 2) + Math.pow(roznicaWysokosci, 2));
 		double aIndex = findAngle(String.valueOf(roznicaWysokosci/r));
 		int a = (int) aIndex;
 
@@ -162,49 +161,49 @@ public class FuzzyLogic {
 
 	private void fillDeltaH() {
 		for (int i = 0; i <= 200; i++) {
-			if (i/2 <= 20) {
+			if (i/2 <= roznicaWysokosci-20) {
 				T[1][i] = 1;
 				T[2][i] = 0;
 				T[3][i] = 0;
 				T[4][i] = 0;
 				T[5][i] = 0;
-			} else if (i/2 <= 35) {
+			} else if (i/2 <= roznicaWysokosci-15) {
 				T[1][i] = T[1][i - 1] - 0.1;
 				T[2][i] = T[2][i - 1] + 0.1;
 				T[3][i] = 1;
 				T[4][i] = 0;
 				T[5][i] = 0;
-			} else if (i/2 <= 40) {
+			} else if (i/2 <= roznicaWysokosci-10) {
 				T[1][i] = 0;
 				T[2][i] = 1;
 				T[3][i] = 0;
 				T[4][i] = 0;
 				T[5][i] = 0;
-			} else if (i/2 <= 45) {
+			} else if (i/2 <= roznicaWysokosci-5) {
 				T[1][i] = 0;
 				T[2][i] = T[2][i - 1] - 0.1;
 				T[3][i] = T[3][i - 1] + 0.1;
 				T[4][i] = 0;
 				T[5][i] = 0;
-			} else if (i/2 <= 50) {
+			} else if (i/2 <= roznicaWysokosci) {
 				T[1][i] = 0;
 				T[2][i] = 0;
 				T[3][i] = 1;
 				T[4][i] = 0;
 				T[5][i] = 0;
-			} else if (i/2 <= 55) {
+			} else if (i/2 <= roznicaWysokosci+5) {
 				T[1][i] = 0;
 				T[2][i] = 0;
 				T[3][i] = T[3][i - 1] - 0.1;
 				T[4][i] = T[4][i - 1] + 0.1;
 				T[5][i] = 0;
-			} else if (i/2 <= 60) {
+			} else if (i/2 <= roznicaWysokosci+10) {
 				T[1][i] = 0;
 				T[2][i] = 0;
 				T[3][i] = 0;
 				T[4][i] = 1;
 				T[5][i] = 0;
-			} else if (i/2 <= 65) {
+			} else if (i/2 <= roznicaWysokosci+15) {
 				T[1][i] = 0;
 				T[2][i] = 0;
 				T[3][i] = 0;
@@ -237,7 +236,6 @@ public class FuzzyLogic {
 
 	public double limitPrecision(String dblAsString, int maxDigitsAfterDecimal) {
 		int multiplier = (int) Math.pow(10, maxDigitsAfterDecimal);
-		double truncated = (double) ((long) ((Double.parseDouble(dblAsString)) * multiplier)) / multiplier;
-		return truncated;
+		return (double) ((long) ((Double.parseDouble(dblAsString)) * multiplier)) / multiplier;
 	}
 }
